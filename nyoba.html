@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Monitoring System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        #resultContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Health Monitoring System</h1>
+        <form id="patientForm">
+            <div class="form-group">
+                <label for="nama">Nama Pasien:</label>
+                <input type="text" id="nama" required pattern="[A-Za-z\s]+" title="Hanya huruf dan spasi diperbolehkan">
+            </div>
+            
+            <div class="form-group">
+                <label for="nik">NIK (16 digit):</label>
+                <input type="text" id="nik" required pattern="\d{16}" title="NIK harus 16 digit angka">
+            </div>
+            
+            <div class="form-group">
+                <label for="umur">Umur:</label>
+                <input type="number" id="umur" required min="0" max="150">
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Jenis Kelamin:</label>
+                <select id="gender" required>
+                    <option value="">Pilih Jenis Kelamin</option>
+                    <option value="Pria">Pria</option>
+                    <option value="Wanita">Wanita</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="sistolik">Tekanan Darah Sistolik (mmHg):</label>
+                <input type="number" id="sistolik" required min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="diastolik">Tekanan Darah Diastolik (mmHg):</label>
+                <input type="number" id="diastolik" required min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="puasa">Status Puasa:</label>
+                <select id="puasa" required>
+                    <option value="">Pilih Status Puasa</option>
+                    <option value="1">Puasa</option>
+                    <option value="0">Tidak Puasa</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gulaDarah">Gula Darah (mg/dL):</label>
+                <input type="number" id="gulaDarah" required min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="kolesterol">Kolesterol (mg/dL):</label>
+                <input type="number" id="kolesterol" required min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="asamUrat">Asam Urat (mg/dL):</label>
+                <input type="number" id="asamUrat" step="0.1" required min="0">
+            </div>
+            
+            <button type="submit" class="btn">Simpan Data Pasien</button>
+        </form>
+        
+        <div id="resultContainer" style="display:none;">
+            <h2>Hasil Pemeriksaan</h2>
+            <p id="tekananDarahStatus" class="status"></p>
+            <p id="gulaDarahStatus" class="status"></p>
+            <p id="kolesterolStatus" class="status"></p>
+            <p id="asamUratStatus" class="status"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validasi input
+            const nama = document.getElementById('nama').value;
+            const nik = document.getElementById('nik').value;
+            const umur = document.getElementById('umur').value;
+            const gender = document.getElementById('gender').value;
+            const sistolik = parseFloat(document.getElementById('sistolik').value);
+            const diastolik = parseFloat(document.getElementById('diastolik').value);
+            const puasa = document.getElementById('puasa').value;
+            const gulaDarah = parseFloat(document.getElementById('gulaDarah').value);
+            const kolesterol = parseFloat(document.getElementById('kolesterol').value);
+            const asamUrat = parseFloat(document.getElementById('asamUrat').value);
+
+            // Status kesehatan
+            const tekananDarahStatus = cekTekananDarah(sistolik, diastolik);
+            const gulaDarahStatus = cekGulaDarah(gulaDarah, puasa === '1');
+            const kolesterolStatus = cekKolesterol(kolesterol);
+            const asamUratStatus = cekAsamUrat(asamUrat, gender === 'Pria');
+
+            // Tampilkan hasil
+            document.getElementById('resultContainer').style.display = 'block';
+            document.getElementById('tekananDarahStatus').textContent = `Tekanan Darah: ${tekananDarahStatus}`;
+            document.getElementById('gulaDarahStatus').textContent = `Gula Darah: ${gulaDarahStatus}`;
+            document.getElementById('kolesterolStatus').textContent = `Kolesterol: ${kolesterolStatus}`;
+            document.getElementById('asamUratStatus').textContent = `Asam Urat: ${asamUratStatus}`;
+
+            // Simpan data ke CSV
+            simpanDataKeCSV(nama, nik, umur, gender, puasa, sistolik, diastolik, gulaDarah, kolesterol, asamUrat);
+        });
+
+        function cekTekananDarah(sistolik, diastolik) {
+            if (sistolik < 90 || diastolik < 60) {
+                return "Hipotensi";
+            } else if (sistolik < 120 && diastolik < 80) {
+                return "Normal";
+            } else if (sistolik >= 120 && sistolik <= 139 && diastolik >= 80 && diastolik <= 89) {
+                return "Ambang Batas (Prahipertensi)";
+            } else if (sistolik >= 140 && sistolik <= 159 && diastolik >= 90 && diastolik <= 99) {
+                return "Hipertensi Derajat I";
+            } else if (sistolik >= 160 && sistolik <= 180 && diastolik >= 100 && diastolik <= 120) {
+                return "Hipertensi Derajat II";
+            } else if (sistolik > 180 || diastolik > 120) {
+                return "Hipertensi Krisis";
+            }
+            return "Tidak Diketahui";
+        }
+
+        function cekGulaDarah(gulaDarah, isPuasa) {
+            if (isPuasa) {
+                if (gulaDarah < 100) {
+                    return "Normal";
+                } else if (gulaDarah >= 100 && gulaDarah <= 125) {
+                    return "Ambang Batas (Pra-diabetes)";
+                } else if (gulaDarah >= 126) {
+                    return "Tidak Normal (Diabetes)";
+                }
+            } else {
+                if (gulaDarah < 140) {
+                    return "Normal";
+                } else if (gulaDarah >= 140 && gulaDarah <= 199) {
+                    return "Ambang Batas (Pra-diabetes)";
+                } else if (gulaDarah >= 200) {
+                    return "Tidak Normal (Diabetes)";
+                }
+            }
+            return "Tidak Diketahui";
+        }
+
+        function cekKolesterol(totalKolesterol) {
+            if (totalKolesterol < 200) {
+                return "Normal";
+            } else if (totalKolesterol >= 200 && totalKolesterol <= 239) {
+                return "Ambang Batas";
+            } else if (totalKolesterol >= 240) {
+                return "Tidak Normal";
+            }
+            return "Tidak Diketahui";
+        }
+
+        function cekAsamUrat(asamUrat, isPria) {
+            if (isPria) {
+                if (asamUrat < 7.0) {
+                    return "Normal";
+                } else if (asamUrat >= 7.0 && asamUrat <= 8.0) {
+                    return "Ambang Batas";
+                } else if (asamUrat > 8.0) {
+                    return "Tidak Normal";
+                }
+            } else {
+                if (asamUrat < 6.0) {
+                    return "Normal";
+                } else if (asamUrat >= 6.0 && asamUrat <= 7.0) {
+                    return "Ambang Batas";
+                } else if (asamUrat > 7.0) {
+                    return "Tidak Normal";
+                }
+            }
+            return "Tidak Diketahui";
+        }
+
+        function simpanDataKeCSV(nama, nik, umur, gender, puasa, sistolik, diastolik, gulaDarah, kolesterol, asamUrat) {
+            const tanggal = new Date().toISOString().split('T')[0];
+            const statusPuasa = puasa === '1' ? 'Puasa' : 'Tidak puasa';
+            
+            const csvContent = `nama, NIK, tanggal, umur pasien, jenis kelamin pasien, status puasa pasien, sistolik, diastolik, gula darah, kolesterol, asam urat\n` +
+                `${nama},${nik},${tanggal},${umur},${gender},${statusPuasa},${sistolik},${diastolik},${gulaDarah},${kolesterol},${asamUrat}`;
+            
+            // Membuat Blob untuk download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${nik}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
